@@ -1,4 +1,10 @@
+import base64
+
 from django.contrib import admin
+from django.utils.safestring import mark_safe
+import barcode
+from barcode.writer import ImageWriter
+from io import BytesIO
 from .models import (
     Product,
     ProductImage,
@@ -38,8 +44,22 @@ class ProductAdmin(admin.ModelAdmin):
         'unit_of_measurement',
         'shelf_life_days',
         'barcode',
-        'additional_info'
+        'additional_info',
+        'barcode_image'
     )
+    readonly_fields = ('barcode_image',)
+
+    def barcode_image(self, obj):
+        if obj.barcode:
+            ean = barcode.get('ean13', obj.barcode, writer=ImageWriter())
+            buffer = BytesIO()
+            ean.write(buffer)
+            base64_image = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            return mark_safe(
+                f'<img src="data:image/png;base64,{base64_image}" height="150" />')
+        return "No Barcode"
+
+    barcode_image.short_description = "Штрих-код"
 
 
 @admin.register(ProductImage)
