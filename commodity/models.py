@@ -1,6 +1,30 @@
 from django.db import models
+from django.contrib.auth.models import User
 
-class Product(models.Model):
+from commodity.middleware import get_current_user
+
+
+class TimestampMixin(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+
+    class Meta:
+        abstract = True
+
+
+class UserTrackingMixin(models.Model):
+    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                    verbose_name="Изменено пользователем")
+
+    def save(self, *args, **kwargs):
+        self.modified_by = get_current_user()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
+
+
+class Product(TimestampMixin, UserTrackingMixin):
     """
     Модель для описания товара:
     - sku: уникальный идентификатор или код
@@ -19,6 +43,18 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images', verbose_name="Товар")
+    image = models.ImageField(upload_to='products/', verbose_name="Изображение")
+
+    class Meta:
+        verbose_name = "Изображение товара"
+        verbose_name_plural = "Изображения товаров"
+
+    def __str__(self):
+        return f"Изображение для {self.product.name}"
 
 
 class ProductAttribute(models.Model):
