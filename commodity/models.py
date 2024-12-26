@@ -25,17 +25,16 @@ class UserTrackingMixin(models.Model):
 
 
 class Product(TimestampMixin, UserTrackingMixin):
-    """
-    Модель для описания товара:
-    - sku: уникальный идентификатор или код
-    - name: название товара
-    - description: дополнительное текстовое описание
-    - price: цена товара
-    """
     sku = models.CharField(max_length=50, unique=True, verbose_name="Артикул")
     name = models.CharField(max_length=100, unique=True, verbose_name="Название")
-    description = models.TextField(blank=True, null=True, verbose_name="Описание")
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Цена")
+    manufacturer_name = models.CharField(max_length=100, verbose_name="Название компании производителя")
+    manufacturer_country = models.CharField(max_length=100, verbose_name="Страна производителя")
+    manufacturer_code = models.CharField(max_length=50, verbose_name="Код компании изготовителя")
+    dimensions = models.CharField(max_length=100, verbose_name="Размеры")
+    unit_of_measurement = models.CharField(max_length=50, verbose_name="Единицы измерения")
+    shelf_life_days = models.PositiveIntegerField(verbose_name="Технический срок годности (дни)")
+    barcode = models.CharField(max_length=50, verbose_name="Штрих-код")
+    additional_info = models.TextField(blank=True, null=True, verbose_name="Дополнительная информация")
 
     class Meta:
         verbose_name = "Товар"
