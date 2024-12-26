@@ -11,6 +11,9 @@ class TimestampMixin(models.Model):
     class Meta:
         abstract = True
 
+    def __str__(self):
+        return f"Создано: {self.created_at}, обновлено: {self.updated_at}"
+
 
 class UserTrackingMixin(models.Model):
     modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -102,6 +105,7 @@ class Stock(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="stock_items", verbose_name="Товар")
     warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="stock_items", verbose_name="Склад")
     quantity = models.PositiveIntegerField(default=0, verbose_name="Количество")
+    expiration_date = models.DateField(null=True, blank=True, verbose_name="Срок годности")
 
     class Meta:
         unique_together = ('product', 'warehouse')
@@ -110,3 +114,117 @@ class Stock(models.Model):
 
     def __str__(self):
         return f"{self.product.name} на {self.warehouse.name}: {self.quantity}"
+
+
+class ReceivingOperation(TimestampMixin, UserTrackingMixin):
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        verbose_name="Товар"
+    )
+    warehouse = models.ForeignKey(
+        "Warehouse",
+        on_delete=models.CASCADE,
+        verbose_name="Склад"
+    )
+    quantity = models.PositiveIntegerField(verbose_name="Количество")
+    expiration_date = models.DateField(verbose_name="Срок годности")
+    status = models.CharField(
+        max_length=50,
+        choices=[
+            ("accepted", "Принято"),
+            ("rejected", "Отклонено")
+        ],
+        verbose_name="Статус"
+    )
+    reason = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Причина отклонения"
+    )
+
+    class Meta:
+        verbose_name = "Приемка товара"
+        verbose_name_plural = "Приемки товаров"
+
+    def __str__(self):
+        return f"Приемка: {self.product.name} ({self.quantity} шт.) - {self.get_status_display()}"
+
+
+class TransferOperation(TimestampMixin, UserTrackingMixin):
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        verbose_name="Товар"
+    )
+    from_warehouse = models.ForeignKey(
+        "Warehouse",
+        on_delete=models.CASCADE,
+        related_name="transfers_out",
+        verbose_name="Из склада"
+    )
+    to_warehouse = models.ForeignKey(
+        "Warehouse",
+        on_delete=models.CASCADE,
+        related_name="transfers_in",
+        verbose_name="В склад"
+    )
+    quantity = models.PositiveIntegerField(verbose_name="Количество")
+
+    class Meta:
+        verbose_name = "Перемещение товара"
+        verbose_name_plural = "Перемещения товаров"
+
+    def __str__(self):
+        return (
+            f"Перемещение: {self.product.name}, "
+            f"{self.quantity} шт. из {self.from_warehouse.name} в {self.to_warehouse.name}"
+        )
+
+
+class WriteOffOperation(TimestampMixin, UserTrackingMixin):
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        verbose_name="Товар"
+    )
+    warehouse = models.ForeignKey(
+        "Warehouse",
+        on_delete=models.CASCADE,
+        verbose_name="Склад"
+    )
+    quantity = models.PositiveIntegerField(verbose_name="Количество")
+    reason = models.CharField(max_length=100, verbose_name="Причина списания")
+    comment = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Комментарий"
+    )
+
+    class Meta:
+        verbose_name = "Списание товара"
+        verbose_name_plural = "Списания товаров"
+
+    def __str__(self):
+        return f"Списание: {self.product.name} ({self.quantity} шт.), причина: {self.reason}"
+
+
+class InventoryCheck(TimestampMixin, UserTrackingMixin):
+    warehouse = models.ForeignKey(
+        "Warehouse",
+        on_delete=models.CASCADE,
+        verbose_name="Склад"
+    )
+    date = models.DateField(verbose_name="Дата инвентаризации")
+    discrepancies = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Несоответствия"
+    )
+
+    class Meta:
+        verbose_name = "Инвентаризация"
+        verbose_name_plural = "Инвентаризации"
+
+    def __str__(self):
+        return f"Инвентаризация склада {self.warehouse.name} от {self.date}"
