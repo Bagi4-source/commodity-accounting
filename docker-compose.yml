@@ -1,0 +1,19 @@
+version: '3.9'
+
+x-common-variables: &env
+  POSTGRES_USER: commodity_user
+  POSTGRES_PASSWORD: commodity_password
+  POSTGRES_DB: commodity_db
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      <<: *env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: { }
