@@ -1,30 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-
-from commodity.middleware import get_current_user
-
-
-class TimestampMixin(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-
-    class Meta:
-        abstract = True
-
-    def __str__(self):
-        return f"Создано: {self.created_at}, обновлено: {self.updated_at}"
-
-
-class UserTrackingMixin(models.Model):
-    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
-                                    verbose_name="Изменено пользователем")
-
-    def save(self, *args, **kwargs):
-        self.modified_by = get_current_user()
-        super().save(*args, **kwargs)
-
-    class Meta:
-        abstract = True
+from shared.models.timestampMixin import TimestampMixin
+from shared.models.userTrackingMixin import UserTrackingMixin
 
 
 class Product(TimestampMixin, UserTrackingMixin):
