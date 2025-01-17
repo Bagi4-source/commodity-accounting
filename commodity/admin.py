@@ -1,10 +1,13 @@
 import base64
 
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 import barcode
 from barcode.writer import ImageWriter
 from io import BytesIO
+
+from .forms import WriteOffOperationForm, TransferOperationForm
 from .models import (
     Product,
     ProductImage,
@@ -113,9 +116,9 @@ class ReceivingOperationAdmin(admin.ModelAdmin):
     list_filter = ('status', 'expiration_date', 'created_at')
     ordering = ('-created_at',)
 
-
 @admin.register(TransferOperation)
 class TransferOperationAdmin(admin.ModelAdmin):
+    form = TransferOperationForm
     list_display = (
         'product',
         'from_warehouse',
@@ -127,9 +130,9 @@ class TransferOperationAdmin(admin.ModelAdmin):
     list_filter = ('from_warehouse', 'to_warehouse', 'created_at')
     ordering = ('-created_at',)
 
-
 @admin.register(WriteOffOperation)
 class WriteOffOperationAdmin(admin.ModelAdmin):
+    form = WriteOffOperationForm
     list_display = (
         'product',
         'warehouse',
