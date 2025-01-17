@@ -4,6 +4,21 @@ from shared.models.timestampMixin import TimestampMixin
 from shared.models.userTrackingMixin import UserTrackingMixin
 
 
+class TypeProduct(models.Model):
+    name = models.CharField(max_length=1000, verbose_name="Название")
+    description = models.CharField(max_length=1000, verbose_name="Описание")
+    max_percent_of_markdown = models.IntegerField(verbose_name="Максимальный процент скидки")
+    days_of_markdown = models.IntegerField(verbose_name="Количество дней скидки")
+    max_percent_of_price_change = models.IntegerField(verbose_name="Максимальный процент изменения цены")
+
+    def __str__(self): # Исправлено на str
+        return self.name
+
+    class Meta:
+        verbose_name = 'Тип продукта' # Русское название в единственном числе
+        verbose_name_plural = 'Типы продуктов' # Русское название во множественном числе
+
+
 class Product(TimestampMixin, UserTrackingMixin):
     sku = models.CharField(max_length=50, unique=True, verbose_name="Артикул")
     name = models.CharField(max_length=100, unique=True, verbose_name="Название")
@@ -13,8 +28,10 @@ class Product(TimestampMixin, UserTrackingMixin):
     dimensions = models.CharField(max_length=100, verbose_name="Размеры")
     unit_of_measurement = models.CharField(max_length=50, verbose_name="Единицы измерения")
     shelf_life_days = models.PositiveIntegerField(verbose_name="Технический срок годности (дни)")
-    barcode = models.CharField(max_length=50, verbose_name="Штрих-код")
+    barcode = models.CharField(max_length=50, unique=True, verbose_name="Штрих-код")
     additional_info = models.TextField(blank=True, null=True, verbose_name="Дополнительная информация")
+    type = models.ForeignKey(TypeProduct, on_delete=models.CASCADE,null=True, verbose_name="Категория товара")
+    start_price = models.DecimalField(max_digits=10, decimal_places=2,null=True, verbose_name="Начальная цена")
 
     class Meta:
         verbose_name = "Товар"
