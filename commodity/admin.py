@@ -14,7 +14,7 @@ from .models import (
     ReceivingOperation,
     TransferOperation,
     WriteOffOperation,
-    InventoryCheck,
+    InventoryCheck, TypeProduct,
 )
 
 
@@ -23,20 +23,23 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = (
         'sku',
         'name',
+        'type', # Добавлено отображение типа продукта
         'manufacturer_name',
         'manufacturer_country',
         'manufacturer_code',
         'dimensions',
         'unit_of_measurement',
         'shelf_life_days',
-        'barcode'
+        'barcode',
+        'start_price',# Добавлено отображение начальной цены
     )
     search_fields = ('sku', 'name', 'manufacturer_name', 'manufacturer_country', 'barcode')
-    list_filter = ('manufacturer_country', 'shelf_life_days')
+    list_filter = ('manufacturer_country', 'shelf_life_days', 'type') # Добавлен фильтр по типу продукта
     ordering = ('name',)
     fields = (
         'sku',
         'name',
+        'type', # Добавлено поле для выбора типа продукта
         'manufacturer_name',
         'manufacturer_country',
         'manufacturer_code',
@@ -45,19 +48,22 @@ class ProductAdmin(admin.ModelAdmin):
         'shelf_life_days',
         'barcode',
         'additional_info',
-        'barcode_image'
+        'start_price', # Добавлено поле начальной цены
+        'barcode_image',
     )
     readonly_fields = ('barcode_image',)
 
     def barcode_image(self, obj):
         if obj.barcode:
-            ean = barcode.get('ean13', obj.barcode, writer=ImageWriter())
-            buffer = BytesIO()
-            ean.write(buffer)
-            base64_image = base64.b64encode(buffer.getvalue()).decode('utf-8')
-            return mark_safe(
-                f'<img src="data:image/png;base64,{base64_image}" height="150" />')
-        return "No Barcode"
+            try:
+                ean = barcode.get('ean13', obj.barcode, writer=ImageWriter())
+                buffer = BytesIO()
+                ean.write(buffer)
+                base64_image = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                return mark_safe(f'<img src="data:image/png;base64,{base64_image}" alt="Штрих-код" height="150" />')
+            except Exception as e:
+                return f"Ошибка генерации штрих-кода: {e}"
+        return "Штрих-код отсутствует"
 
     barcode_image.short_description = "Штрих-код"
 
@@ -143,3 +149,21 @@ class InventoryCheckAdmin(admin.ModelAdmin):
     search_fields = ('warehouse__name', 'discrepancies')
     list_filter = ('date', 'created_at')
     ordering = ('-date',)
+
+
+@admin.register(TypeProduct)
+class TypeProductAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'max_percent_of_markdown', 'days_of_markdown', 'max_percent_of_price_change')
+    search_fields = ('name', 'description')
+    list_filter = ('max_percent_of_markdown', 'days_of_markdown', 'max_percent_of_price_change')
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description')
+        }),
+        ('Скидки', {
+            'fields': ('max_percent_of_markdown', 'days_of_markdown')
+        }),
+        ('Изменение цены', {
+            'fields': ('max_percent_of_price_change',)
+        }),
+    )
