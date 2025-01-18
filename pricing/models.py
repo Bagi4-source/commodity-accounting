@@ -3,6 +3,8 @@ from django.db import models
 from commodity.models import Warehouse, Product
 from django.utils import timezone
 
+from hrDepartment.models import Employee
+
 
 class PriceTagType(models.Model):
     tag_type_name = models.CharField(max_length=100, unique=True, verbose_name="Название типа ценника")
@@ -12,17 +14,6 @@ class PriceTagType(models.Model):
         verbose_name_plural = "Типы ценников"
     def __str__(self):
         return self.tag_type_name
-
-
-class Employee(models.Model):  # ЗАМЕНИТЬ //ЭТО ВРЕМЕННО
-    first_name = models.CharField(max_length=100, verbose_name="Имя")
-    last_name = models.CharField(max_length=100, verbose_name="Фамилия")
-    patronymic = models.CharField(max_length=100, blank=True, null=True, verbose_name="Отчество")
-    class Meta:
-        verbose_name = "Сотрудник"
-        verbose_name_plural = "Сотрудники"
-    def __str__(self):
-        return f"{self.last_name} {self.first_name} {self.patronymic or ''}"
 
 
 class PriceList(models.Model):
@@ -98,7 +89,7 @@ class HCResponse(models.Model):
     status_response = models.ForeignKey(StatusResponse, on_delete=models.CASCADE, verbose_name="ID статуса ответа")
 
     def __str__(self):
-        return f"Ответ ГК({self.employee.first_name}, {self.employee.last_name}, {self.response_date.strftime('%Y-%m-%d %H:%M')}, {self.status_response.status_name})"
+        return f"Ответ ГК({self.employee.fio}, {self.response_date.strftime('%Y-%m-%d %H:%M')}, {self.status_response.status_name})"
 
     class Meta:
         db_table = 'hc_response'

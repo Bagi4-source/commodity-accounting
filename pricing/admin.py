@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import HCResponse, StatusResponse, HCRequest, Action
-from .models import PriceTagProduct, PriceTagType, Employee, PriceList, RequestStopList
+from .models import PriceTagProduct, PriceTagType, PriceList, RequestStopList
 
 @admin.register(PriceTagProduct)
 class PriceTagProductAdmin(admin.ModelAdmin):
@@ -45,16 +45,11 @@ class PriceTagTypeAdmin(admin.ModelAdmin):
     fields = ('tag_type_name', 'tag_type_description')
 
 
-@admin.register(Employee) #  ЗАМЕНИТЬ //ЭТО ВРЕМЕННО
-class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ('last_name', 'first_name', 'patronymic')
-    search_fields = ('last_name', 'first_name', 'patronymic')
-    fields = ('last_name', 'first_name', 'patronymic')
 
 @admin.register(PriceList)
 class PriceListAdmin(admin.ModelAdmin):
     list_display = ('creation_date', 'employee')
-    search_fields = ('employee__last_name', 'employee__first_name', 'employee__patronymic')
+    search_fields = ('employee__fio',)
     list_filter = ('creation_date', 'employee')
     fields = ('creation_date', 'employee')
     readonly_fields = ('creation_date',)
@@ -72,7 +67,7 @@ class RequestStopListAdmin(admin.ModelAdmin):
 @admin.register(HCResponse)
 class HCResponseAdmin(admin.ModelAdmin):
     list_display = ('employee', 'response_date', 'status_response')
-    search_fields = ('employee__last_name', 'status_response__status_name')
+    search_fields = ('employee__fio', 'status_response__status_name')
     list_filter = ('response_date', 'status_response_id')
     ordering = ('response_date',)
 
@@ -94,9 +89,9 @@ class HCRequestAdmin(admin.ModelAdmin):
         'num_req_stop_list')
     search_fields = (
         'creation_date',
-        'commodity_expert__last_name',
+        'commodity_expert__fio',
         'status_response__status_name',
-        'response__employee__last_name',
+        'response__employee__fio',
     )
     list_filter = ('creation_date', 'status_response', 'commodity_expert', 'num_req_stop_list')
     ordering = ('creation_date',)
