@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "commodity.apps.CommodityConfig",
     "pricing.apps.PricingConfig",
+    "hrDepartment.apps.HrdepartmentConfig",
 ]
 
 MIDDLEWARE = [
