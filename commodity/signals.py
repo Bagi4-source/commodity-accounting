@@ -36,7 +36,10 @@ def validate_and_update_stock_on_write_off(sender, instance, **kwargs):
             raise ValidationError("Недостаточно товара на складе для списания.")
         # Уменьшаем количество в остатках
         stock.quantity -= quantity_to_write_off
-        stock.save()
+        if stock.quantity == 0:
+            stock.delete()
+        else:
+            stock.save()
     except Stock.DoesNotExist:
         raise ValidationError("Товар отсутствует на складе, списание невозможно.")
 
@@ -54,7 +57,11 @@ def update_stock_on_transfer(sender, instance, created, **kwargs):
         if from_stock.quantity < quantity_to_transfer:
             raise ValidationError("Недостаточно товара на складе для перемещения.")
         from_stock.quantity -= quantity_to_transfer
-        from_stock.save()
+
+        if from_stock.quantity == 0:
+            from_stock.delete()
+        else:
+            from_stock.save()
     except Stock.DoesNotExist:
         raise ValidationError("Товар отсутствует на складе, перемещение невозможно.")
 
