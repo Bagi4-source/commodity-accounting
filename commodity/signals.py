@@ -3,8 +3,12 @@ from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from .models import ReceivingOperation, WriteOffOperation, TransferOperation, Stock
 
+
 @receiver(post_save, sender=ReceivingOperation)
 def update_stock_on_receiving(sender, instance, created, **kwargs):
+    if not created:
+        return
+
     product = instance.product
     warehouse = instance.warehouse
     quantity_received = instance.quantity
@@ -15,9 +19,10 @@ def update_stock_on_receiving(sender, instance, created, **kwargs):
         defaults={'quantity': quantity_received}
     )
 
-    if not stock_created:
+    if instance.status == "accepted":
         stock.quantity += quantity_received
         stock.save()
+
 
 @receiver(post_save, sender=WriteOffOperation)
 def validate_and_update_stock_on_write_off(sender, instance, **kwargs):
@@ -34,6 +39,7 @@ def validate_and_update_stock_on_write_off(sender, instance, **kwargs):
         stock.save()
     except Stock.DoesNotExist:
         raise ValidationError("Товар отсутствует на складе, списание невозможно.")
+
 
 @receiver(post_save, sender=TransferOperation)
 def update_stock_on_transfer(sender, instance, created, **kwargs):

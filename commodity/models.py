@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+
+from shared.models.noUpdateMixin import NoUpdateModel
 from shared.models.timestampMixin import TimestampMixin
 from shared.models.userTrackingMixin import UserTrackingMixin
 
@@ -110,7 +112,7 @@ class Stock(models.Model):
         return f"{self.product.name} на {self.warehouse.name}: {self.quantity}"
 
 
-class ReceivingOperation(TimestampMixin, UserTrackingMixin):
+class ReceivingOperation(TimestampMixin, UserTrackingMixin, NoUpdateModel):
     product = models.ForeignKey(
         "Product",
         on_delete=models.CASCADE,
@@ -145,7 +147,7 @@ class ReceivingOperation(TimestampMixin, UserTrackingMixin):
         return f"Приемка: {self.product.name} ({self.quantity} шт.) - {self.get_status_display()}"
 
 
-class TransferOperation(TimestampMixin, UserTrackingMixin):
+class TransferOperation(TimestampMixin, UserTrackingMixin, NoUpdateModel):
     product = models.ForeignKey(
         "Product",
         on_delete=models.CASCADE,
@@ -176,7 +178,7 @@ class TransferOperation(TimestampMixin, UserTrackingMixin):
         )
 
 
-class WriteOffOperation(TimestampMixin, UserTrackingMixin):
+class WriteOffOperation(TimestampMixin, UserTrackingMixin, NoUpdateModel):
     product = models.ForeignKey(
         "Product",
         on_delete=models.CASCADE,
